@@ -4,27 +4,52 @@ import LiveChart from "../components/LiveChart";
 import PairSelector from "../components/PairSelector";
 import TradeForm from "../components/TradeForm";
 import SuggestionCard from "../components/SuggestionCard";
-import { fetchLiveCandles, analyzeTrade } from "../lib/api";
+
+// === REAL API CALLS ===
+const API_BASE = "https://twk-backend.onrender.com"; // 🟢 Replace with your actual backend domain (e.g., https://api.myforexapp.com)
 
 export default function Home(){
-  const [pair, setPair] = useState("EURUSD");
+  const [pair, setPair] = useState("EUR/USD");
   const [timeframe, setTimeframe] = useState("1h");
   const [candles, setCandles] = useState([]);
   const [suggestion, setSuggestion] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  // 🟩 Fetch real live candles from FastAPI
   useEffect(() => {
-    // load initial candles
     let mounted = true;
-    fetchLiveCandles(pair, timeframe).then(data => { if(mounted) setCandles(data); });
-    // we can also set up polling later
-    return () => mounted = false;
+    async function loadCandles() {
+      try {
+        setError(null);
+        const res = await fetch(`${API_BASE}/api/candles?pair=${encodeURIComponent(pair)}&timeframe=${timeframe}`);
+        if (!res.ok) throw new Error(`Failed to fetch candles: ${res.statusText}`);
+        const data = await res.json();
+        if (mounted) setCandles(data);
+      } catch (err) {
+        console.error("Error loading candles:", err);
+        setError("Unable to load live data. Check your backend connection.");
+      }
+    }
+    loadCandles();
+    return () => { mounted = false; };
   }, [pair, timeframe]);
 
+  // 🟩 Analyze trade via FastAPI
   const handleAnalyze = async ({ accountSize, lotSize }) => {
     setLoading(true);
-    const res = await analyzeTrade({ pair, timeframe, accountSize, lotSize });
-    setSuggestion(res);
+    try {
+      const res = await fetch(`${API_BASE}/api/analyze_trade`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ pair, timeframe, accountSize, lotSize }),
+      });
+      const data = await res.json();
+      setSuggestion(data);
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setSuggestion({ signal: "Error", reasoning: "Backend unavailable" });
+    }
     setLoading(false);
   };
 
@@ -33,6 +58,12 @@ export default function Home(){
       <Header />
       <main className="max-w-6xl mx-auto space-y-6">
         <LiveChart candles={candles} />
+
+        {error && (
+          <div className="text-red-400 text-sm text-center mt-2">
+            {error}
+          </div>
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-4">
