@@ -8,7 +8,9 @@ const BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
  */
 export async function fetchLiveCandles(pair = "EURUSD", timeframe = "1h") {
   try {
-    const encodedPair = encodeURIComponent(pair.replace("", "/")); // ensures EURUSD -> EUR/USD encoded
+const encodedPair = encodeURIComponent(
+  pair.includes("/") ? pair : `${pair.slice(0,3)}/${pair.slice(3)}`
+);
 const res = await axios.get(`${BASE}/api/market/candles?pair=${encodedPair}&timeframe=${timeframe}`);
     return res.data;
   } catch (err) {
