@@ -9,8 +9,8 @@ export default function Header(){
           <span className="font-bold text-slate-900">TWK</span>
         </div>
         <div>
-          <h1 className="text-xl font-semibold">TWK — Smart Forex Entry Analyzer</h1>
-          <p className="text-sm text-slate-400">Best entry / TP / SL recommendations — powered by pattern learning</p>
+          <h1 className="text-xl font-semibold">TWK</h1>
+          <p className="text-sm text-slate-400">Trade With Kon</p>
         </div>
       </div>
 
