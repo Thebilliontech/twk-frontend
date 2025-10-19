@@ -28,7 +28,7 @@ export default function Home(){
         if (mounted) setCandles(data);
       } catch (err) {
         console.error("Error loading candles:", err);
-        setError("Unable to load live data. Check your backend connection.");
+        setError("No Chart Data Available.");
       }
     }
     loadCandles();
